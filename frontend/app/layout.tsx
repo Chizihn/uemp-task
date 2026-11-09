@@ -23,7 +23,10 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "University Education Management Portal (UEMP)",
+  title: {
+    default: "University Education Management Portal (UEMP)",
+    template: "%s | UEMP",
+  },
   description: "Web-based university education management and grading portal",
 };
 
@@ -41,8 +44,8 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <QueryProvider>
