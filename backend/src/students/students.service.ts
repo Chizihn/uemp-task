@@ -48,6 +48,8 @@ export class StudentsService {
             OR: [
               { matricNumber: { contains: filter.search, mode: 'insensitive' } },
               { user: { email: { contains: filter.search, mode: 'insensitive' } } },
+              { user: { firstName: { contains: filter.search, mode: 'insensitive' } } },
+              { user: { lastName: { contains: filter.search, mode: 'insensitive' } } },
             ],
           }
         : {}),
@@ -62,7 +64,15 @@ export class StudentsService {
         include: {
           department: true,
           program: true,
-          user: { select: { email: true, status: true } },
+          user: {
+            select: {
+              firstName: true,
+              middleName: true,
+              lastName: true,
+              email: true,
+              status: true,
+            },
+          },
         },
         orderBy: { matricNumber: 'asc' },
         skip,
@@ -77,7 +87,13 @@ export class StudentsService {
   async findOne(id: string, actor: AuthUser) {
     const student = await this.prisma.student.findUnique({
       where: { id },
-      include: { department: true, program: true, user: { select: { email: true, status: true } } },
+      include: {
+        department: true,
+        program: true,
+        user: {
+          select: { firstName: true, middleName: true, lastName: true, email: true, status: true },
+        },
+      },
     });
     if (!student) {
       throw new NotFoundException('Student not found');
@@ -99,7 +115,14 @@ export class StudentsService {
     try {
       return await this.prisma.$transaction(async (tx) => {
         const user = await tx.user.create({
-          data: { email: dto.email, passwordHash, role: Role.STUDENT },
+          data: {
+            email: dto.email,
+            passwordHash,
+            role: Role.STUDENT,
+            firstName: dto.firstName,
+            middleName: dto.middleName,
+            lastName: dto.lastName,
+          },
         });
         return tx.student.create({
           data: {

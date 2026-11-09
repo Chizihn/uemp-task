@@ -69,14 +69,26 @@ async function main() {
 
   const superAdminUser = await prisma.user.upsert({
     where: { email: 'superadmin@uemp.test' },
-    update: {},
-    create: { email: 'superadmin@uemp.test', passwordHash, role: 'SUPER_ADMIN' },
+    update: { firstName: 'Ngozi', lastName: 'Adeyemi' },
+    create: {
+      email: 'superadmin@uemp.test',
+      passwordHash,
+      role: 'SUPER_ADMIN',
+      firstName: 'Ngozi',
+      lastName: 'Adeyemi',
+    },
   });
 
   const deptAdminUser = await prisma.user.upsert({
     where: { email: 'deptadmin@uemp.test' },
-    update: {},
-    create: { email: 'deptadmin@uemp.test', passwordHash, role: 'DEPT_ADMIN' },
+    update: { firstName: 'Chidi', lastName: 'Okafor' },
+    create: {
+      email: 'deptadmin@uemp.test',
+      passwordHash,
+      role: 'DEPT_ADMIN',
+      firstName: 'Chidi',
+      lastName: 'Okafor',
+    },
   });
   await prisma.deptAdminProfile.upsert({
     where: { userId: deptAdminUser.id },
@@ -86,8 +98,14 @@ async function main() {
 
   const lecturerUser = await prisma.user.upsert({
     where: { email: 'lecturer@uemp.test' },
-    update: {},
-    create: { email: 'lecturer@uemp.test', passwordHash, role: 'LECTURER' },
+    update: { firstName: 'Tunde', lastName: 'Bakare' },
+    create: {
+      email: 'lecturer@uemp.test',
+      passwordHash,
+      role: 'LECTURER',
+      firstName: 'Tunde',
+      lastName: 'Bakare',
+    },
   });
   const lecturer = await prisma.lecturer.upsert({
     where: { userId: lecturerUser.id },
@@ -102,8 +120,15 @@ async function main() {
 
   const studentUser = await prisma.user.upsert({
     where: { email: 'student@uemp.test' },
-    update: {},
-    create: { email: 'student@uemp.test', passwordHash, role: 'STUDENT' },
+    update: { firstName: 'Amara', middleName: 'Ifeoma', lastName: 'Eze' },
+    create: {
+      email: 'student@uemp.test',
+      passwordHash,
+      role: 'STUDENT',
+      firstName: 'Amara',
+      middleName: 'Ifeoma',
+      lastName: 'Eze',
+    },
   });
   const student = await prisma.student.upsert({
     where: { userId: studentUser.id },

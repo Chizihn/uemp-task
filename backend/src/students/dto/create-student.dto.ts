@@ -1,6 +1,18 @@
-import { IsEmail, IsInt, IsString, Max, Min, MinLength } from 'class-validator';
+import { IsEmail, IsInt, IsOptional, IsString, Max, Min, MinLength } from 'class-validator';
 
 export class CreateStudentDto {
+  @IsString()
+  @MinLength(1)
+  firstName!: string;
+
+  @IsOptional()
+  @IsString()
+  middleName?: string;
+
+  @IsString()
+  @MinLength(1)
+  lastName!: string;
+
   @IsEmail()
   email!: string;
 

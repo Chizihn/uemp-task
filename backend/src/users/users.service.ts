@@ -19,7 +19,15 @@ export class UsersService {
     const where: Prisma.UserWhereInput = {
       role: filter.role,
       status: filter.status,
-      email: filter.search ? { contains: filter.search, mode: 'insensitive' } : undefined,
+      ...(filter.search
+        ? {
+            OR: [
+              { email: { contains: filter.search, mode: 'insensitive' } },
+              { firstName: { contains: filter.search, mode: 'insensitive' } },
+              { lastName: { contains: filter.search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
     };
 
     const skip = filter.skip ?? 0;
@@ -30,6 +38,9 @@ export class UsersService {
         where,
         select: {
           id: true,
+          firstName: true,
+          middleName: true,
+          lastName: true,
           email: true,
           role: true,
           status: true,

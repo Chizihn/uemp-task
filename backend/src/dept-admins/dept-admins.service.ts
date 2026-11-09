@@ -11,14 +11,24 @@ export class DeptAdminsService {
   findAll(departmentId?: string) {
     return this.prisma.deptAdminProfile.findMany({
       where: { departmentId },
-      include: { department: true, user: { select: { email: true, status: true } } },
+      include: {
+        department: true,
+        user: {
+          select: { firstName: true, middleName: true, lastName: true, email: true, status: true },
+        },
+      },
     });
   }
 
   async findOne(id: string) {
     const profile = await this.prisma.deptAdminProfile.findUnique({
       where: { id },
-      include: { department: true, user: { select: { email: true, status: true } } },
+      include: {
+        department: true,
+        user: {
+          select: { firstName: true, middleName: true, lastName: true, email: true, status: true },
+        },
+      },
     });
     if (!profile) {
       throw new NotFoundException('Department admin not found');
@@ -37,7 +47,14 @@ export class DeptAdminsService {
     try {
       return await this.prisma.$transaction(async (tx) => {
         const user = await tx.user.create({
-          data: { email: dto.email, passwordHash, role: Role.DEPT_ADMIN },
+          data: {
+            email: dto.email,
+            passwordHash,
+            role: Role.DEPT_ADMIN,
+            firstName: dto.firstName,
+            middleName: dto.middleName,
+            lastName: dto.lastName,
+          },
         });
         return tx.deptAdminProfile.create({
           data: { userId: user.id, departmentId: dto.departmentId },
