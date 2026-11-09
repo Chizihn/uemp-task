@@ -45,6 +45,8 @@ export class LecturersService {
               { staffId: { contains: filter.search, mode: 'insensitive' } },
               { title: { contains: filter.search, mode: 'insensitive' } },
               { user: { email: { contains: filter.search, mode: 'insensitive' } } },
+              { user: { firstName: { contains: filter.search, mode: 'insensitive' } } },
+              { user: { lastName: { contains: filter.search, mode: 'insensitive' } } },
             ],
           }
         : {}),
@@ -56,7 +58,18 @@ export class LecturersService {
     const [items, total] = await Promise.all([
       this.prisma.lecturer.findMany({
         where,
-        include: { department: true, user: { select: { email: true, status: true } } },
+        include: {
+          department: true,
+          user: {
+            select: {
+              firstName: true,
+              middleName: true,
+              lastName: true,
+              email: true,
+              status: true,
+            },
+          },
+        },
         orderBy: { staffId: 'asc' },
         skip,
         take,
@@ -70,7 +83,12 @@ export class LecturersService {
   async findOne(id: string, actor: AuthUser) {
     const lecturer = await this.prisma.lecturer.findUnique({
       where: { id },
-      include: { department: true, user: { select: { email: true, status: true } } },
+      include: {
+        department: true,
+        user: {
+          select: { firstName: true, middleName: true, lastName: true, email: true, status: true },
+        },
+      },
     });
     if (!lecturer) {
       throw new NotFoundException('Lecturer not found');
@@ -86,7 +104,14 @@ export class LecturersService {
     try {
       return await this.prisma.$transaction(async (tx) => {
         const user = await tx.user.create({
-          data: { email: dto.email, passwordHash, role: Role.LECTURER },
+          data: {
+            email: dto.email,
+            passwordHash,
+            role: Role.LECTURER,
+            firstName: dto.firstName,
+            middleName: dto.middleName,
+            lastName: dto.lastName,
+          },
         });
         return tx.lecturer.create({
           data: {

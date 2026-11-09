@@ -3,16 +3,12 @@ import { CookieOptions } from 'express';
 export const ACCESS_TOKEN_COOKIE = 'uemp_access_token';
 export const REFRESH_TOKEN_COOKIE = 'uemp_refresh_token';
 
-/**
- * httpOnly + secure(in prod) + sameSite=lax cookies: the token is never
- * readable by client JS, closing the XSS token-theft vector that a
- * localStorage/js-cookie approach leaves open.
- */
 export function buildCookieOptions(maxAgeMs: number): CookieOptions {
+  const isProd = process.env.NODE_ENV === 'production';
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
     domain: process.env.COOKIE_DOMAIN || undefined,
     path: '/',
     maxAge: maxAgeMs,

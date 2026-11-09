@@ -16,7 +16,7 @@ cp .env.example .env        # defaults work out of the box for local dev
 pnpm install
 docker compose up -d        # starts PostgreSQL on localhost:5432
 pnpm prisma:migrate         # applies the schema
-pnpm db:seed                # loads sample data (faculties, courses, one user per role, sample registrations/results)
+pnpm db:seed                # loads a fully populated department — see Test credentials below
 pnpm start:dev               # http://localhost:4000/v1
 ```
 
@@ -24,14 +24,20 @@ API docs (Swagger) are served at `http://localhost:4000/v1/docs` outside of prod
 
 ## Test credentials
 
-Seeded by `prisma/seed.ts`. Password for all accounts: `Password123!`
+Seeded by `prisma/seed.ts` (idempotent — safe to re-run). Password for all accounts: `Password123!`
 
 | Role | Email | Notes |
 | --- | --- | --- |
 | Super Admin | `superadmin@uemp.test` | University-wide access |
 | Dept Admin | `deptadmin@uemp.test` | Scoped to Computer Science |
-| Lecturer | `lecturer@uemp.test` | Assigned to CSC301/CSC302/CSC303 |
-| Student | `student@uemp.test` | CSC/2021/001, 300 level, one approved + one pending result pre-loaded |
+| Dept Admin | `mthdeptadmin@uemp.test` | Scoped to Mathematics — use alongside `deptadmin@` to verify departmental data isolation |
+| Lecturer | `lecturer@uemp.test` | Dr. Tunde Bakare (`LEC-001`), teaches several CSC courses across levels and both the current and a past session |
+| Lecturer | `folasade.adeniran@`, `emeka.nwosu@`, `ibrahim.yusuf@uemp.test` | Additional CSC teaching staff; `ibrahim.yusuf@` is seeded `SUSPENDED` |
+| Lecturer | `grace.okonkwo@uemp.test` | Mathematics |
+| Student | `student@uemp.test` | Amara Eze, `CSC/2021/001`, 300 level — has results across two academic sessions (current + a fully-graded past one), so CGPA reflects real multi-semester history |
+| Student | 11 more `@uemp.test` accounts | Spread across CSC levels 100–400 (one `SUSPENDED`, one `INACTIVE`) plus 2 Mathematics students, for a realistically populated department |
+
+The current semester's results are seeded across **every** stage of the result state machine — unregistered-for-grading, draft (partial scores), draft (ready to submit), submitted, approved, and rejected (with feedback) — so every workflow screen has real data to show without manual setup. See `backend/prisma/seed.ts` for the exact roster and allocations.
 
 ## Scripts
 

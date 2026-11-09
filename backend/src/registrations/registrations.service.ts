@@ -188,7 +188,11 @@ export class RegistrationsService {
       this.prisma.registration.findMany({
         where,
         include: {
-          student: { include: { user: { select: { email: true } } } },
+          student: {
+            include: {
+              user: { select: { firstName: true, middleName: true, lastName: true, email: true } },
+            },
+          },
           courseAllocation: { include: allocationInclude },
         },
         orderBy: { registeredAt: 'desc' },

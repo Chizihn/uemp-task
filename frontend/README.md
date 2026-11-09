@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# UEMP Frontend
 
-## Getting Started
+Next.js (App Router) client for the University Education Management Portal. A single client-rendered dashboard shell serves all four roles (Student, Lecturer, Department Admin, Super Admin) — there are no role-specific URL prefixes; each page decides what to render and which role may see it. See [`/docs`](../docs) for architecture, database schema, and RBAC/security design documentation.
 
-First, run the development server:
+## Prerequisites
+
+- Node.js 20+
+- pnpm (`corepack enable` or `npm i -g pnpm`)
+- The backend running (see [`../backend/README.md`](../backend/README.md)) — this app is a pure client to that API, it has no server-side data access of its own.
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd frontend
+cp .env.example .env.local   # defaults point at the local backend on :4000
+pnpm install
+pnpm dev                     # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_API_URL` | Base URL of the backend API, including its `/v1` prefix (e.g. `https://api.example.com/v1` in a non-local deployment). |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts
 
-## Learn More
+| Command | Purpose |
+| --- | --- |
+| `pnpm dev` | Run with hot reload (Turbopack) |
+| `pnpm build` / `pnpm start` | Production build and run |
+| `pnpm lint` | ESLint |
 
-To learn more about Next.js, take a look at the following resources:
+## Architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Auth state**: there is no separate auth store — `useCurrentUser()` (a TanStack Query hook backed by `GET /auth/me`) *is* the auth state. The access/refresh tokens live in httpOnly cookies set by the backend; a `proxy.ts` (Next's middleware) only decides what to *show* based on the cookie's presence, never what's *allowed* — every real authorization decision is re-checked server-side.
+- **Routing**: every authenticated page lives under the single `/dashboard` prefix. Per-page role restriction is enforced client-side via `useRequireRole()` (for UX only — the backend enforces the real boundary) and the page itself renders different content depending on `user.role`.
+- **Data fetching**: TanStack Query throughout, with a query-key factory per domain (`lib/query-keys.ts`) and an axios instance (`lib/api/client.ts`) that transparently refreshes an expired access token and retries the original request once.
+- **UI**: Base UI primitives (not Radix) via a local `shadcn`-style component layer under `components/ui/`, styled with Tailwind v4.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Full rationale in [`/docs/01-architecture.md`](../docs/01-architecture.md), [`/docs/03-rbac-security.md`](../docs/03-rbac-security.md), and [`/docs/04-design-system.md`](../docs/04-design-system.md).

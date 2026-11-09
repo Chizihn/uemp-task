@@ -17,7 +17,11 @@ import { SaveDraftDto } from './dto/save-draft.dto';
 import { PendingResultsFilterDto } from './dto/pending-results-filter.dto';
 
 const registrationInclude = {
-  student: { include: { user: { select: { email: true } } } },
+  student: {
+    include: {
+      user: { select: { firstName: true, middleName: true, lastName: true, email: true } },
+    },
+  },
   courseAllocation: {
     include: { course: true, lecturer: true, session: true, semester: true },
   },

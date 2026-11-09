@@ -9,7 +9,10 @@ export const AuditAction = {
   RESULT_REJECT: 'result.reject',
   RESULT_REOPEN: 'result.reopen',
   PROFILE_UPDATE: 'profile.update',
+  PASSWORD_CHANGE: 'password.change',
   USER_ACTIVATE: 'user.activate',
   USER_SUSPEND: 'user.suspend',
   USER_ROLE_CHANGE: 'user.role_change',
+  DEPT_ADMIN_REASSIGN: 'dept_admin.reassign',
+  REPORT_EXPORT: 'report.export',
 } as const;
