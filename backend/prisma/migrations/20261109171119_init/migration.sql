@@ -5,7 +5,7 @@ CREATE TYPE "Role" AS ENUM ('STUDENT', 'LECTURER', 'DEPT_ADMIN', 'SUPER_ADMIN');
 CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'SUSPENDED', 'INACTIVE');
 
 -- CreateEnum
-CREATE TYPE "Term" AS ENUM ('FIRST', 'SECOND');
+CREATE TYPE "Term" AS ENUM ('FIRST', 'SECOND', 'THIRD');
 
 -- CreateEnum
 CREATE TYPE "ResultStatus" AS ENUM ('DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED');
@@ -13,11 +13,15 @@ CREATE TYPE "ResultStatus" AS ENUM ('DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED'
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
+    "firstName" TEXT NOT NULL,
+    "middleName" TEXT,
+    "lastName" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "passwordHash" TEXT NOT NULL,
     "role" "Role" NOT NULL,
     "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE',
     "avatarUrl" TEXT,
+    "phone" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

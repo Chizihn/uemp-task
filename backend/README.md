@@ -1,6 +1,6 @@
 # UEMP Backend
 
-NestJS + Prisma + PostgreSQL API for the University Education Management Portal. See [`/docs`](../docs) for architecture, database schema, and RBAC/security design documentation.
+NestJS + Prisma + PostgreSQL API for the University Education Management Portal.
 
 ## Prerequisites
 
@@ -55,12 +55,24 @@ The current semester's results are seeded across **every** stage of the result s
 
 See `.env.example` for the full list. The ones that matter for a non-local deployment:
 
-- `DATABASE_URL` — PostgreSQL connection string
+- `DATABASE_URL` — PostgreSQL connection string. **Append `?sslmode=require`** for most managed Postgres providers (Render, Supabase, Neon, Railway) — without it Prisma's connection fails with a self-signed-certificate error.
 - `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` — set these to real random secrets in any non-local environment
-- `COOKIE_DOMAIN` — the domain the auth cookies are scoped to
-- `CORS_ORIGIN` — the deployed frontend's origin
-- `CLOUDINARY_*` — optional; only needed for avatar uploads (`POST /media/avatar`)
+- `COOKIE_DOMAIN` — **leave unset** unless the frontend and backend share a parent domain. When they're on two unrelated domains (e.g. a Vercel frontend + a Render backend), a cookie's `Domain` attribute can't span both — leaving this blank lets the backend default it to its own host, which is what you want; `SameSite=None; Secure` (already set automatically when `NODE_ENV=production`) is what makes the cross-site request still carry it.
+- `CORS_ORIGIN` — the deployed frontend's exact origin (no trailing slash); comma-separate for multiple origins
+- `NODE_ENV=production` — set explicitly; it's what flips cookies to `secure`/`SameSite=None` and disables the Swagger docs route
+- `CLOUDINARY_*` — optional; only needed for avatar uploads and PDF report archival
+
+## Deploying
+
+The build/start scripts are plain Node (`build` → `dist/main.js`, `start:prod` → `node dist/main`) with no Dockerfile, so any Node host (Render, Railway, Fly, a VPS) works directly off this repo. A few things that reliably trip up a first deploy of this stack:
+
+- **Build command**: override the host's default to install with pnpm and run the build script, e.g. `corepack enable && pnpm install --frozen-lockfile && pnpm build`. Most hosts default to `npm`/`yarn` unless told otherwise.
+- **Start command**: `pnpm start:prod` (equivalently `node dist/main.js`).
+- **Migrations**: run `pnpm prisma:deploy` (`prisma migrate deploy` — non-interactive, safe for CI) against the production `DATABASE_URL` before the new instance starts serving traffic. Use the host's "pre-deploy command" feature if it has one; `prisma migrate dev` (interactive, creates a shadow DB) will not work in CI.
+- **Seeding**: `pnpm db:seed` is idempotent — safe to run once against the production DB if you want the same reviewer-friendly sample data live.
+- **Health check path**: the API has no route at `/` (everything lives under the `/v1` prefix) — if the host's health check defaults to `/`, it will see a 404 and consider the deploy unhealthy. Point it at `/v1/health` instead.
+- **Node version**: pinned via `engines.node` in `package.json` (`>=20`); most hosts read this automatically, but double-check if yours doesn't.
 
 ## Architecture
 
-Feature-module-per-domain NestJS structure (`auth`, `students`, `lecturers`, `courses`, `course-allocations`, `registrations`, `results`, `reports`, `audit-log`, `media`, ...). Every endpoint is authorized twice: a role check (`@Roles()` + `RolesGuard`) and, inside the service layer, a data-scope check derived from the authenticated user's own profile — never from client-supplied IDs. Full rationale in [`/docs/01-architecture.md`](../docs/01-architecture.md) and [`/docs/03-rbac-security.md`](../docs/03-rbac-security.md).
+Feature-module-per-domain NestJS structure (`auth`, `students`, `lecturers`, `courses`, `course-allocations`, `registrations`, `results`, `reports`, `audit-log`, `media`, ...). Every endpoint is authorized twice: a role check (`@Roles()` + `RolesGuard`) and, inside the service layer, a data-scope check derived from the authenticated user's own profile — never from client-supplied IDs. 

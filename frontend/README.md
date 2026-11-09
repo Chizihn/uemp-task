@@ -1,6 +1,6 @@
 # UEMP Frontend
 
-Next.js (App Router) client for the University Education Management Portal. A single client-rendered dashboard shell serves all four roles (Student, Lecturer, Department Admin, Super Admin) — there are no role-specific URL prefixes; each page decides what to render and which role may see it. See [`/docs`](../docs) for architecture, database schema, and RBAC/security design documentation.
+Next.js (App Router) client for the University Education Management Portal. A single client-rendered dashboard shell serves all four roles (Student, Lecturer, Department Admin, Super Admin) — there are no role-specific URL prefixes; each page decides what to render and which role may see it.
 
 ## Prerequisites
 
@@ -37,5 +37,3 @@ pnpm dev                     # http://localhost:3000
 - **Routing**: every authenticated page lives under the single `/dashboard` prefix. Per-page role restriction is enforced client-side via `useRequireRole()` (for UX only — the backend enforces the real boundary) and the page itself renders different content depending on `user.role`.
 - **Data fetching**: TanStack Query throughout, with a query-key factory per domain (`lib/query-keys.ts`) and an axios instance (`lib/api/client.ts`) that transparently refreshes an expired access token and retries the original request once.
 - **UI**: Base UI primitives (not Radix) via a local `shadcn`-style component layer under `components/ui/`, styled with Tailwind v4.
-
-Full rationale in [`/docs/01-architecture.md`](../docs/01-architecture.md), [`/docs/03-rbac-security.md`](../docs/03-rbac-security.md), and [`/docs/04-design-system.md`](../docs/04-design-system.md).
