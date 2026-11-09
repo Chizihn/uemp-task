@@ -76,7 +76,7 @@ export function DashboardShell({ nav, user, children }: DashboardShellProps) {
 }
 
 const NAV_LINK_CLASS =
-  "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
+  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
 const NAV_LINK_ACTIVE_CLASS = "bg-brand/10 text-brand hover:bg-brand/10 hover:text-brand";
 
 function isNavItemActive(pathname: string, href: string): boolean {

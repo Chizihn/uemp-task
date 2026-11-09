@@ -14,7 +14,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </span>
         UEMP Portal
       </div>
-      <div className="w-full max-w-sm">{children}</div>
+      <div className="w-full max-w-md">{children}</div>
     </div>
   );
 }
