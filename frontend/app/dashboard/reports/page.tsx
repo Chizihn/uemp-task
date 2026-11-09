@@ -1,9 +1,15 @@
 "use client";
 
-import { FileBarChart } from "lucide-react";
-import { useRegistrationSummary, usePerformanceSummary } from "@/hooks/use-reports";
+import { Download, FileBarChart, Loader2 } from "lucide-react";
+import {
+  useRegistrationSummary,
+  usePerformanceSummary,
+  useExportRegistrationSummary,
+  useExportPerformanceSummary,
+} from "@/hooks/use-reports";
 import { useActivePeriod } from "@/hooks/use-academic-sessions";
 import { useRequireRole } from "@/hooks/use-require-role";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -38,6 +44,8 @@ export default function ReportsPage() {
     useRegistrationSummary(periodFilter);
   const { data: performanceSummary, isLoading: loadingPerformance } =
     usePerformanceSummary(periodFilter);
+  const exportRegistrations = useExportRegistrationSummary();
+  const exportPerformance = useExportPerformanceSummary();
 
   return (
     <div className="flex flex-col gap-6">
@@ -59,9 +67,24 @@ export default function ReportsPage() {
             </TabsList>
 
             <TabsContent value="registrations" className="pt-4">
-              <CardHeader className="px-0 pt-0">
-                <CardTitle>Registrations per course</CardTitle>
-                <CardDescription>How many students registered for each course.</CardDescription>
+              <CardHeader className="flex-row items-start justify-between gap-4 px-0 pt-0">
+                <div>
+                  <CardTitle>Registrations per course</CardTitle>
+                  <CardDescription>How many students registered for each course.</CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!registrationSummary?.length || exportRegistrations.isPending}
+                  onClick={() => exportRegistrations.mutate(periodFilter)}
+                >
+                  {exportRegistrations.isPending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Download className="size-4" />
+                  )}
+                  Export PDF
+                </Button>
               </CardHeader>
               {!ready || loadingRegistrations ? (
                 <div className="flex flex-col gap-2">
@@ -96,9 +119,24 @@ export default function ReportsPage() {
             </TabsContent>
 
             <TabsContent value="performance" className="pt-4">
-              <CardHeader className="px-0 pt-0">
-                <CardTitle>Performance per course</CardTitle>
-                <CardDescription>Based on approved (published) results only.</CardDescription>
+              <CardHeader className="flex-row items-start justify-between gap-4 px-0 pt-0">
+                <div>
+                  <CardTitle>Performance per course</CardTitle>
+                  <CardDescription>Based on approved (published) results only.</CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!performanceSummary?.length || exportPerformance.isPending}
+                  onClick={() => exportPerformance.mutate(periodFilter)}
+                >
+                  {exportPerformance.isPending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Download className="size-4" />
+                  )}
+                  Export PDF
+                </Button>
               </CardHeader>
               {!ready || loadingPerformance ? (
                 <div className="flex flex-col gap-2">

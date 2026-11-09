@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, UserStatus } from '@prisma/client';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Prisma, Role, UserStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { AuditAction } from '../audit-log/audit-action.constants';
+import { hashPassword, verifyPassword } from '../common/utils/password.util';
 import { UpdateMyProfileDto } from './dto/update-my-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { UserFilterDto } from './dto/user-filter.dto';
 
 const DEFAULT_PAGE_SIZE = 50;
@@ -18,6 +20,7 @@ export class UsersService {
   async findAll(filter: UserFilterDto) {
     const where: Prisma.UserWhereInput = {
       role: filter.role,
+      NOT: { role: Role.SUPER_ADMIN }, // Super Admin accounts are bootstrapped out-of-band, not managed here
       status: filter.status,
       ...(filter.search
         ? {
@@ -91,5 +94,26 @@ export class UsersService {
       entityId: userId,
     });
     return updated;
+  }
+
+  /** Lets a signed-in user change their own password — the escape hatch off an admin-issued temporary one. */
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.findOne(userId);
+    const currentMatches = await verifyPassword(user.passwordHash, dto.currentPassword);
+    if (!currentMatches) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const passwordHash = await hashPassword(dto.newPassword);
+    await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+
+    await this.auditLogService.record({
+      userId,
+      action: AuditAction.PASSWORD_CHANGE,
+      entityType: 'User',
+      entityId: userId,
+    });
+
+    return { success: true };
   }
 }

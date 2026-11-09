@@ -1,7 +1,13 @@
 import { apiClient, unwrap } from "./client";
-import type { CurrentUser, LoginInput, LoginResult, UpdateMyProfileInput } from "@/lib/types";
+import type {
+  CurrentUser,
+  LoginInput,
+  LoginResult,
+  UpdateMyProfileInput,
+  ChangePasswordInput,
+} from "@/lib/types";
 
-export type { LoginInput, LoginResult, UpdateMyProfileInput };
+export type { LoginInput, LoginResult, UpdateMyProfileInput, ChangePasswordInput };
 
 export function login(input: LoginInput) {
   return unwrap(apiClient.post<{ success: true; data: LoginResult }>("/auth/login", input));
@@ -18,5 +24,11 @@ export function getMe() {
 export function updateMyProfile(input: UpdateMyProfileInput) {
   return unwrap(
     apiClient.patch<{ success: true; data: CurrentUser }>("/users/me/profile", input),
+  );
+}
+
+export function changePassword(input: ChangePasswordInput) {
+  return unwrap(
+    apiClient.patch<{ success: true; data: { success: true } }>("/users/me/password", input),
   );
 }

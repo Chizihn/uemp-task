@@ -1,8 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Prisma, Role, ResultStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProfileLookupService } from '../common/profile-lookup.service';
+import { AuditLogService } from '../audit-log/audit-log.service';
+import { AuditAction } from '../audit-log/audit-action.constants';
 import { AuthUser } from '../common/types/auth-user.interface';
+import { ReportExportService } from './report-export.service';
+import { buildRegistrationSummaryPdf, buildPerformanceSummaryPdf } from './pdf-report.util';
 
 interface PeriodFilter {
   sessionId?: string;
@@ -11,10 +15,24 @@ interface PeriodFilter {
 
 @Injectable()
 export class ReportsService {
+  private readonly logger = new Logger(ReportsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly profileLookup: ProfileLookupService,
+    private readonly auditLogService: AuditLogService,
+    private readonly reportExportService: ReportExportService,
   ) {}
+
+  private async resolvePeriodLabel(filter: PeriodFilter): Promise<string> {
+    if (!filter.sessionId) return 'All sessions';
+    const session = await this.prisma.academicSession.findUnique({
+      where: { id: filter.sessionId },
+    });
+    if (!filter.semesterId) return session?.name ?? 'All sessions';
+    const semester = await this.prisma.semester.findUnique({ where: { id: filter.semesterId } });
+    return `${session?.name ?? 'Unknown session'} — ${semester?.term ?? ''}`.trim();
+  }
 
   private async resolveDepartmentFilter(actor: AuthUser): Promise<string | undefined> {
     if (actor.role === Role.DEPT_ADMIN) {
@@ -128,5 +146,61 @@ export class ReportsService {
         gradeDistribution: row.grades,
       }))
       .sort((a, b) => a.course.localeCompare(b.course));
+  }
+
+  async exportRegistrationSummaryPdf(actor: AuthUser, filter: PeriodFilter) {
+    const [rows, periodLabel] = await Promise.all([
+      this.registrationSummary(actor, filter),
+      this.resolvePeriodLabel(filter),
+    ]);
+    const pdf = await buildRegistrationSummaryPdf(rows, periodLabel);
+    const filename = `registration-summary-${Date.now()}.pdf`;
+
+    // Archive a copy to Cloudinary for the institution's records, but never let that block or
+    // fail the actual download — the browser gets the bytes straight from this response either way.
+    this.reportExportService
+      .uploadPdf(pdf, filename.replace(/\.pdf$/, ''))
+      .catch((e: unknown) =>
+        this.logger.warn(
+          `Cloudinary report archive failed: ${e instanceof Error ? e.message : String(e)}`,
+        ),
+      );
+
+    await this.auditLogService.record({
+      userId: actor.id,
+      action: AuditAction.REPORT_EXPORT,
+      entityType: 'Report',
+      entityId: null,
+      metadata: { report: 'registration-summary', ...filter },
+    });
+
+    return { buffer: pdf, filename };
+  }
+
+  async exportPerformanceSummaryPdf(actor: AuthUser, filter: PeriodFilter) {
+    const [rows, periodLabel] = await Promise.all([
+      this.performanceSummary(actor, filter),
+      this.resolvePeriodLabel(filter),
+    ]);
+    const pdf = await buildPerformanceSummaryPdf(rows, periodLabel);
+    const filename = `performance-summary-${Date.now()}.pdf`;
+
+    this.reportExportService
+      .uploadPdf(pdf, filename.replace(/\.pdf$/, ''))
+      .catch((e: unknown) =>
+        this.logger.warn(
+          `Cloudinary report archive failed: ${e instanceof Error ? e.message : String(e)}`,
+        ),
+      );
+
+    await this.auditLogService.record({
+      userId: actor.id,
+      action: AuditAction.REPORT_EXPORT,
+      entityType: 'Report',
+      entityId: null,
+      metadata: { report: 'performance-summary', ...filter },
+    });
+
+    return { buffer: pdf, filename };
   }
 }

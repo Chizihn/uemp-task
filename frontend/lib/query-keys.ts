@@ -44,6 +44,11 @@ export const userKeys = {
   list: (filters: object) => [...userKeys.root, "list", filters] as const,
 };
 
+export const deptAdminKeys = {
+  root: ["dept-admins"] as const,
+  list: (departmentId?: string) => [...deptAdminKeys.root, "list", departmentId ?? null] as const,
+};
+
 export const studentKeys = {
   root: ["students"] as const,
   list: (filters: object) => [...studentKeys.root, "list", filters] as const,

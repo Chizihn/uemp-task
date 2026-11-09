@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useCurrentUser, useUpdateMyProfile } from "@/hooks/use-auth";
+import { useCurrentUser, useUpdateMyProfile, useChangePassword } from "@/hooks/use-auth";
 import { useRequireAuth } from "@/hooks/use-require-role";
 import { AvatarUpload } from "@/components/shared/avatar-upload";
 import { Button } from "@/components/ui/button";
@@ -27,18 +27,49 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
+const passwordFormSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Enter your current password"),
+    newPassword: z.string().min(8, "New password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Confirm your new password"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+
+type PasswordFormValues = z.infer<typeof passwordFormSchema>;
+
 export default function ProfilePage() {
   const { ready } = useRequireAuth();
   const { data: user, isLoading } = useCurrentUser();
   const updateProfile = useUpdateMyProfile();
+  const changePassword = useChangePassword();
 
   const { register, handleSubmit } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     values: { phone: user?.phone ?? "" },
   });
 
+  const {
+    register: registerPassword,
+    handleSubmit: handlePasswordSubmit,
+    reset: resetPasswordForm,
+    formState: { errors: passwordErrors },
+  } = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordFormSchema),
+    defaultValues: { currentPassword: "", newPassword: "", confirmPassword: "" },
+  });
+
   function onSubmit(values: ProfileFormValues) {
     updateProfile.mutate({ phone: values.phone || undefined });
+  }
+
+  function onPasswordSubmit(values: PasswordFormValues) {
+    changePassword.mutate(
+      { currentPassword: values.currentPassword, newPassword: values.newPassword },
+      { onSuccess: () => resetPasswordForm() },
+    );
   }
 
   const identifier =
@@ -106,6 +137,75 @@ export default function ProfilePage() {
           <CardFooter>
             <Button type="submit" disabled={updateProfile.isPending}>
               Save changes
+            </Button>
+          </CardFooter>
+        </form>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Security</CardTitle>
+          <CardDescription>
+            Change your password — especially if you&apos;re still using the temporary one issued
+            when your account was created.
+          </CardDescription>
+        </CardHeader>
+        <form onSubmit={handlePasswordSubmit(onPasswordSubmit)}>
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="currentPassword">Current password</Label>
+              <Input
+                id="currentPassword"
+                type="password"
+                autoComplete="current-password"
+                aria-invalid={!!passwordErrors.currentPassword}
+                aria-describedby={passwordErrors.currentPassword ? "currentPassword-error" : undefined}
+                {...registerPassword("currentPassword")}
+              />
+              {passwordErrors.currentPassword && (
+                <p id="currentPassword-error" role="alert" className="text-sm text-destructive">
+                  {passwordErrors.currentPassword.message}
+                </p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="newPassword">New password</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  aria-invalid={!!passwordErrors.newPassword}
+                  aria-describedby={passwordErrors.newPassword ? "newPassword-error" : undefined}
+                  {...registerPassword("newPassword")}
+                />
+                {passwordErrors.newPassword && (
+                  <p id="newPassword-error" role="alert" className="text-sm text-destructive">
+                    {passwordErrors.newPassword.message}
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="confirmPassword">Confirm new password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  aria-invalid={!!passwordErrors.confirmPassword}
+                  aria-describedby={passwordErrors.confirmPassword ? "confirmPassword-error" : undefined}
+                  {...registerPassword("confirmPassword")}
+                />
+                {passwordErrors.confirmPassword && (
+                  <p id="confirmPassword-error" role="alert" className="text-sm text-destructive">
+                    {passwordErrors.confirmPassword.message}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button type="submit" disabled={changePassword.isPending}>
+              Change password
             </Button>
           </CardFooter>
         </form>

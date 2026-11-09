@@ -42,6 +42,7 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { label: "Departments", href: "/dashboard/departments", icon: Building2 },
     { label: "Programs", href: "/dashboard/programs", icon: GraduationCap },
     { label: "Academic Sessions", href: "/dashboard/sessions", icon: CalendarRange },
+    { label: "Department Admins", href: "/dashboard/dept-admins", icon: UserCog },
     { label: "Users", href: "/dashboard/users", icon: Users },
     { label: "Reports", href: "/dashboard/reports", icon: FileBarChart },
     { label: "Audit Log", href: "/dashboard/audit-log", icon: ShieldCheck },

@@ -61,18 +61,20 @@ export default function ApprovalsPage() {
           <CardDescription>{data?.total ?? 0} total</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <div className="relative max-w-sm">
-            <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search by matric number or email..."
-              className="pl-8"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setSkip(0);
-              }}
-            />
-          </div>
+          {(search || (data?.total ?? 0) > 0 || isLoading) && (
+            <div className="relative max-w-sm">
+              <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by matric number or email..."
+                className="pl-8"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setSkip(0);
+                }}
+              />
+            </div>
+          )}
 
           {!ready || isLoading ? (
             <div className="flex flex-col gap-2">
@@ -81,7 +83,15 @@ export default function ApprovalsPage() {
               ))}
             </div>
           ) : !data || data.items.length === 0 ? (
-            <EmptyState icon={CheckSquare} title="Nothing pending review" />
+            <EmptyState
+              icon={CheckSquare}
+              title={search ? "No results match your search" : "Nothing pending review"}
+              description={
+                search
+                  ? "Try a different matric number or email."
+                  : "Every submitted result has been reviewed. New submissions will show up here."
+              }
+            />
           ) : (
             <>
               <Table>

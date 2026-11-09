@@ -64,3 +64,11 @@ export function useUpdateMyProfile() {
     },
   });
 }
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: authApi.changePassword,
+    onSuccess: () => toast.success("Password changed"),
+    onError: (error) => toast.error(getErrorMessage(error, "Could not change password")),
+  });
+}

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Plus, Search, Users as UsersIcon } from "lucide-react";
+import Link from "next/link";
+import { MoreHorizontal, Search, Users as UsersIcon } from "lucide-react";
 import { useUsers, useUpdateUserStatus } from "@/hooks/use-users";
 import { useRequireRole } from "@/hooks/use-require-role";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -40,11 +41,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PaginationControls } from "@/components/shared/pagination-controls";
 import { UserStatusBadge } from "@/components/shared/status-badge";
-import { DeptAdminFormDialog } from "./_components/dept-admin-form-dialog";
 import { ROLE_LABEL, type Role, type UserListItem, type UserStatus } from "@/lib/types";
 
 const TAKE = 20;
 const ALL_STATUSES: UserStatus[] = ["ACTIVE", "SUSPENDED", "INACTIVE"];
+/** Super Admin accounts are bootstrapped out-of-band — they're never listed or filterable here. */
+const FILTERABLE_ROLES = (Object.keys(ROLE_LABEL) as Role[]).filter((r) => r !== "SUPER_ADMIN");
 
 export default function UsersPage() {
   const { ready } = useRequireRole("SUPER_ADMIN");
@@ -54,7 +56,6 @@ export default function UsersPage() {
   const [role, setRole] = useState<Role | "ALL">("ALL");
   const [status, setStatus] = useState<UserStatus | "ALL">("ALL");
   const [skip, setSkip] = useState(0);
-  const [createOpen, setCreateOpen] = useState(false);
 
   const { data, isLoading } = useUsers({
     search: debouncedSearch || undefined,
@@ -67,16 +68,15 @@ export default function UsersPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-2xl font-medium">Users</h1>
-          <p className="text-sm text-muted-foreground">
-            Every account across every role, department, and status.
-          </p>
-        </div>
-        <Button onClick={() => setCreateOpen(true)}>
-          <Plus className="size-4" /> New department admin
-        </Button>
+      <div>
+        <h1 className="font-heading text-2xl font-medium">Users</h1>
+        <p className="text-sm text-muted-foreground">
+          Students, lecturers, and department admins — department admin accounts are created from{" "}
+          <Link href="/dashboard/dept-admins" className="underline hover:text-foreground">
+            Department Admins
+          </Link>
+          .
+        </p>
       </div>
 
       <Card>
@@ -111,7 +111,7 @@ export default function UsersPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All roles</SelectItem>
-                {(Object.keys(ROLE_LABEL) as Role[]).map((r) => (
+                {FILTERABLE_ROLES.map((r) => (
                   <SelectItem key={r} value={r}>
                     {ROLE_LABEL[r]}
                   </SelectItem>
@@ -184,8 +184,6 @@ export default function UsersPage() {
           )}
         </CardContent>
       </Card>
-
-      <DeptAdminFormDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }

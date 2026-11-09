@@ -1,8 +1,9 @@
 "use client";
 
-import { FileBarChart } from "lucide-react";
-import { usePerformanceSummary } from "@/hooks/use-reports";
+import { Download, FileBarChart, Loader2 } from "lucide-react";
+import { usePerformanceSummary, useExportPerformanceSummary } from "@/hooks/use-reports";
 import { useRequireRole } from "@/hooks/use-require-role";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -25,6 +26,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 export default function PerformancePage() {
   const { ready } = useRequireRole("LECTURER");
   const { data, isLoading } = usePerformanceSummary({});
+  const exportPerformance = useExportPerformanceSummary();
 
   return (
     <div className="flex flex-col gap-6">
@@ -36,9 +38,24 @@ export default function PerformancePage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Course performance</CardTitle>
-          <CardDescription>Based on approved (published) results only.</CardDescription>
+        <CardHeader className="flex-row items-start justify-between gap-4">
+          <div>
+            <CardTitle>Course performance</CardTitle>
+            <CardDescription>Based on approved (published) results only.</CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!data?.length || exportPerformance.isPending}
+            onClick={() => exportPerformance.mutate({})}
+          >
+            {exportPerformance.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Download className="size-4" />
+            )}
+            Export PDF
+          </Button>
         </CardHeader>
         <CardContent>
           {!ready || isLoading ? (

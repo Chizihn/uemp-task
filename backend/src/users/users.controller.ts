@@ -6,6 +6,7 @@ import { AuthUser } from '../common/types/auth-user.interface';
 import { UsersService } from './users.service';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 import { UpdateMyProfileDto } from './dto/update-my-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { UserFilterDto } from './dto/user-filter.dto';
 
 @Controller('users')
@@ -15,6 +16,11 @@ export class UsersController {
   @Patch('me/profile')
   updateMyProfile(@CurrentUser() actor: AuthUser, @Body() dto: UpdateMyProfileDto) {
     return this.usersService.updateMyProfile(actor.id, dto);
+  }
+
+  @Patch('me/password')
+  changePassword(@CurrentUser() actor: AuthUser, @Body() dto: ChangePasswordDto) {
+    return this.usersService.changePassword(actor.id, dto);
   }
 
   @Get()

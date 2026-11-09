@@ -30,6 +30,8 @@ export interface DeptAdminProfile {
   userId: string;
   departmentId: string;
   department: Department;
+  /** Present on `GET /dept-admins` rows; absent when nested inside `CurrentUser`. */
+  user?: { firstName: string; middleName: string | null; lastName: string; email: string; status: UserStatus };
 }
 
 /** Shape of each row from `GET /users` — a narrower projection than `CurrentUser`. */
@@ -105,6 +107,10 @@ export interface CreateDeptAdminInput {
   lastName: string;
   email: string;
   password: string;
+  departmentId: string;
+}
+
+export interface UpdateDeptAdminInput {
   departmentId: string;
 }
 
