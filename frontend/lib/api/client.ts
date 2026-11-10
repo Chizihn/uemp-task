@@ -51,11 +51,16 @@ apiClient.interceptors.response.use(
         await refreshSession();
         return apiClient(config);
       } catch {
-        if (typeof window !== "undefined") {
+        if (typeof window !== "undefined" && window.location.pathname !== "/login") {
           // Hard reload, not router.push: this runs outside React (an axios
           // interceptor), and the refresh token itself just failed, so a
           // full reload is what actually guarantees every bit of client
           // state (React Query cache included) gets wiped.
+          //
+          // Guarded to skip while already on /login: an unauthenticated visitor
+          // landing there also triggers a `/auth/me` 401 -> failed refresh, and
+          // without this check that reloads /login, which repeats the same
+          // 401 -> failed refresh -> reload cycle forever.
           // eslint-disable-next-line @next/next/no-location-assign-relative-destination
           window.location.href = "/login";
         }
