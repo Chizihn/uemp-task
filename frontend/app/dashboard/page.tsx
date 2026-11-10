@@ -279,9 +279,9 @@ function SuperAdminHome({ user }: { user: CurrentUser }) {
 function InfoCard({ label, value }: { label: string; value?: string }) {
   return (
     <Card size="sm">
-      <CardContent className="flex flex-col gap-1">
-        <span className="text-xs text-muted-foreground">{label}</span>
-        <span className="font-heading text-lg font-medium">{value ?? "—"}</span>
+      <CardContent className="flex flex-col gap-1.5">
+        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
+        <span className="font-heading text-lg font-semibold tracking-tight text-foreground truncate">{value ?? "—"}</span>
       </CardContent>
     </Card>
   );
@@ -290,9 +290,9 @@ function InfoCard({ label, value }: { label: string; value?: string }) {
 function StatCard({ label, value }: { label: string; value?: number }) {
   return (
     <Card size="sm">
-      <CardContent className="flex flex-col gap-1">
-        <span className="text-xs text-muted-foreground">{label}</span>
-        <span className="font-heading text-2xl font-medium">{value ?? "—"}</span>
+      <CardContent className="flex flex-col gap-1.5">
+        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
+        <span className="font-heading text-2xl md:text-3xl font-bold tracking-tight text-foreground">{value ?? "—"}</span>
       </CardContent>
     </Card>
   );

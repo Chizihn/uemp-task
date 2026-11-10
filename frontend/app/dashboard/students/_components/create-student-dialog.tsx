@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -144,9 +145,9 @@ export function CreateStudentDialog({ open, onOpenChange }: CreateStudentDialogP
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cs-password">Temporary password</Label>
-            <Input
+            <PasswordInput
               id="cs-password"
-              type="text"
+              placeholder="••••••••"
               aria-invalid={!!errors.password}
               aria-describedby={errors.password ? "cs-password-error" : undefined}
               {...register("password")}

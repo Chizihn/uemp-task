@@ -149,7 +149,7 @@ function ClassListRow({
             type="number"
             min={0}
             max={30}
-            className="h-8 w-20"
+            className="h-8.5 w-20 px-2 text-center font-mono"
             value={caScore}
             disabled={!editable}
             aria-label={`CA score for ${registration.student.matricNumber}`}
@@ -165,7 +165,7 @@ function ClassListRow({
             type="number"
             min={0}
             max={70}
-            className="h-8 w-20"
+            className="h-8.5 w-20 px-2 text-center font-mono"
             value={examScore}
             disabled={!editable}
             aria-label={`Exam score for ${registration.student.matricNumber}`}

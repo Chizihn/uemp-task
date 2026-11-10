@@ -8,6 +8,7 @@ import { useRequireAuth } from "@/hooks/use-require-role";
 import { AvatarUpload } from "@/components/shared/avatar-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -154,10 +155,10 @@ export default function ProfilePage() {
           <CardContent className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="currentPassword">Current password</Label>
-              <Input
+              <PasswordInput
                 id="currentPassword"
-                type="password"
                 autoComplete="current-password"
+                placeholder="••••••••"
                 aria-invalid={!!passwordErrors.currentPassword}
                 aria-describedby={passwordErrors.currentPassword ? "currentPassword-error" : undefined}
                 {...registerPassword("currentPassword")}
@@ -168,13 +169,13 @@ export default function ProfilePage() {
                 </p>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="newPassword">New password</Label>
-                <Input
+                <PasswordInput
                   id="newPassword"
-                  type="password"
                   autoComplete="new-password"
+                  placeholder="••••••••"
                   aria-invalid={!!passwordErrors.newPassword}
                   aria-describedby={passwordErrors.newPassword ? "newPassword-error" : undefined}
                   {...registerPassword("newPassword")}
@@ -187,10 +188,10 @@ export default function ProfilePage() {
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="confirmPassword">Confirm new password</Label>
-                <Input
+                <PasswordInput
                   id="confirmPassword"
-                  type="password"
                   autoComplete="new-password"
+                  placeholder="••••••••"
                   aria-invalid={!!passwordErrors.confirmPassword}
                   aria-describedby={passwordErrors.confirmPassword ? "confirmPassword-error" : undefined}
                   {...registerPassword("confirmPassword")}

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -137,9 +138,9 @@ export function CreateLecturerDialog({ open, onOpenChange }: CreateLecturerDialo
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cl-password">Temporary password</Label>
-            <Input
+            <PasswordInput
               id="cl-password"
-              type="text"
+              placeholder="••••••••"
               aria-invalid={!!errors.password}
               aria-describedby={errors.password ? "cl-password-error" : undefined}
               {...register("password")}
