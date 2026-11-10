@@ -5,6 +5,17 @@ import { useRouter } from "next/navigation";
 import { useCurrentUser } from "./use-auth";
 import { DASHBOARD_HOME, type Role } from "@/lib/types";
 
+function getLoginRedirectUrl(): string {
+  if (typeof window === "undefined") return "/login";
+  const path = window.location.pathname;
+  const search = window.location.search;
+  const full = path + search;
+  if (full && full !== "/" && full !== DASHBOARD_HOME && full !== "/login") {
+    return `/login?from=${encodeURIComponent(full)}`;
+  }
+  return "/login";
+}
+
 export function useRequireRole(allowed: Role | Role[]) {
   const router = useRouter();
   const { data: user, isLoading, isError } = useCurrentUser();
@@ -13,7 +24,7 @@ export function useRequireRole(allowed: Role | Role[]) {
   useEffect(() => {
     if (isLoading) return;
     if (isError || !user) {
-      router.replace("/login");
+      router.replace(getLoginRedirectUrl());
       return;
     }
     if (!allowedRoles.includes(user.role)) {
@@ -35,7 +46,7 @@ export function useRequireAuth() {
   useEffect(() => {
     if (isLoading) return;
     if (isError || !user) {
-      router.replace("/login");
+      router.replace(getLoginRedirectUrl());
     }
   }, [isLoading, isError, user, router]);
 

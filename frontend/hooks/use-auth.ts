@@ -25,8 +25,24 @@ export function useLogin() {
   return useMutation({
     mutationFn: authApi.login,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: authKeys.me() });
-      router.push(DASHBOARD_HOME);
+      try {
+        await queryClient.fetchQuery({
+          queryKey: authKeys.me(),
+          queryFn: authApi.getMe,
+        });
+      } catch {
+        await queryClient.invalidateQueries({ queryKey: authKeys.me() });
+      }
+
+      let target = DASHBOARD_HOME;
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        const from = params.get("from");
+        if (from && from.startsWith("/") && !from.startsWith("//")) {
+          target = from;
+        }
+      }
+      router.push(target);
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, "Invalid email or password"));

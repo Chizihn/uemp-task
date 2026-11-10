@@ -1,7 +1,6 @@
-import { FullPageSpinner } from "@/components/shared/full-page-spinner";
+import { redirect } from "next/navigation";
+import { DASHBOARD_HOME } from "@/lib/types";
 
-// proxy.ts redirects every request to "/" (authenticated or not) before this
-// ever renders — this is just a safe fallback for the brief moment in between.
 export default function Home() {
-  return <FullPageSpinner />;
+  redirect(DASHBOARD_HOME);
 }

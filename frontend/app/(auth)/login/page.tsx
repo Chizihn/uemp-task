@@ -1,10 +1,12 @@
 "use client";
 
+import { Suspense, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
-import { useLogin } from "@/hooks/use-auth";
+import { useLogin, useCurrentUser } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -17,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DASHBOARD_HOME } from "@/lib/types";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Enter a valid email address"),
@@ -25,13 +28,24 @@ const loginSchema = z.object({
 
 type LoginValues = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { data: user, isLoading: isUserLoading } = useCurrentUser();
   const login = useLogin();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginValues>({ resolver: zodResolver(loginSchema) });
+
+  useEffect(() => {
+    if (user && !isUserLoading) {
+      const from = searchParams.get("from");
+      const target = from && from.startsWith("/") && !from.startsWith("//") ? from : DASHBOARD_HOME;
+      router.replace(target);
+    }
+  }, [user, isUserLoading, router, searchParams]);
 
   return (
     <Card>
@@ -83,5 +97,21 @@ export default function LoginPage() {
         </CardFooter>
       </form>
     </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <Card>
+          <CardContent className="flex min-h-[300px] items-center justify-center p-6">
+            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          </CardContent>
+        </Card>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

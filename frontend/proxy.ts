@@ -1,18 +1,37 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { decodeJwtPayload, isExpired } from "@/lib/jwt";
-import { DASHBOARD_HOME } from "@/lib/types";
+import { DASHBOARD_HOME, type Role } from "@/lib/types";
 
-// Next.js 16 renamed `middleware.ts` -> `proxy.ts` (same API, exports `proxy`
-// instead of `middleware`). This is a UX convenience only — it decides what
-// to *show*, not what's *allowed*. The backend re-verifies everything on
-// every request; see docs/03-rbac-security.md.
-//
-// Deliberately no per-role URL prefixes: every authenticated user lands on
-// the same `/dashboard`, which renders different content based on who's
-// logged in. Per-page role restriction (e.g. only Super Admin can see
-// /dashboard/faculties) lives in each page via `useRequireRole`, not here.
 const ACCESS_TOKEN_COOKIE = "uemp_access_token";
+
+// Server-side RBAC: map route prefixes to permitted roles
+const ROLE_ROUTE_PERMISSIONS: { prefix: string; roles: Role[] }[] = [
+  // Super Admin only routes
+  { prefix: "/dashboard/faculties", roles: ["SUPER_ADMIN"] },
+  { prefix: "/dashboard/departments", roles: ["SUPER_ADMIN"] },
+  { prefix: "/dashboard/programs", roles: ["SUPER_ADMIN"] },
+  { prefix: "/dashboard/sessions", roles: ["SUPER_ADMIN"] },
+  { prefix: "/dashboard/dept-admins", roles: ["SUPER_ADMIN"] },
+  { prefix: "/dashboard/users", roles: ["SUPER_ADMIN"] },
+  { prefix: "/dashboard/audit-log", roles: ["SUPER_ADMIN"] },
+
+  // Dept Admin & Super Admin routes
+  { prefix: "/dashboard/students", roles: ["DEPT_ADMIN", "SUPER_ADMIN"] },
+  { prefix: "/dashboard/lecturers", roles: ["DEPT_ADMIN", "SUPER_ADMIN"] },
+  { prefix: "/dashboard/courses", roles: ["DEPT_ADMIN", "SUPER_ADMIN"] },
+  { prefix: "/dashboard/approvals", roles: ["DEPT_ADMIN", "SUPER_ADMIN"] },
+  { prefix: "/dashboard/reports", roles: ["DEPT_ADMIN", "SUPER_ADMIN"] },
+
+  // Lecturer routes
+  { prefix: "/dashboard/my-courses", roles: ["LECTURER"] },
+  { prefix: "/dashboard/performance", roles: ["LECTURER"] },
+
+  // Student routes
+  { prefix: "/dashboard/available-courses", roles: ["STUDENT"] },
+  { prefix: "/dashboard/registrations", roles: ["STUDENT"] },
+  { prefix: "/dashboard/results", roles: ["STUDENT"] },
+];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -21,6 +40,28 @@ export function proxy(request: NextRequest) {
   const payload = token ? decodeJwtPayload(token) : null;
   const isAuthenticated = !!payload && !isExpired(payload);
 
+  // 1. Server-side guard for /dashboard and all protected subroutes
+  if (pathname.startsWith("/dashboard")) {
+    if (!isAuthenticated) {
+      const loginUrl = new URL("/login", request.url);
+      if (pathname !== DASHBOARD_HOME) {
+        loginUrl.searchParams.set("from", pathname);
+      }
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Server-side RBAC guard: check if user's role is allowed on this route
+    if (payload?.role) {
+      const rule = ROLE_ROUTE_PERMISSIONS.find((r) => pathname.startsWith(r.prefix));
+      if (rule && !rule.roles.includes(payload.role)) {
+        return NextResponse.redirect(new URL(DASHBOARD_HOME, request.url));
+      }
+    }
+
+    return NextResponse.next();
+  }
+
+  // 2. Server-side guard for /login: authenticated users are redirected to dashboard
   if (pathname === "/login") {
     if (isAuthenticated) {
       return NextResponse.redirect(new URL(DASHBOARD_HOME, request.url));
@@ -28,21 +69,17 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!isAuthenticated) {
-    const loginUrl = new URL("/login", request.url);
-    if (pathname !== "/") {
-      loginUrl.searchParams.set("from", pathname);
-    }
-    return NextResponse.redirect(loginUrl);
-  }
-
+  // 3. Root route redirect
   if (pathname === "/") {
-    return NextResponse.redirect(new URL(DASHBOARD_HOME, request.url));
+    if (isAuthenticated) {
+      return NextResponse.redirect(new URL(DASHBOARD_HOME, request.url));
+    }
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!_next/|api/|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/).*)"],
 };
