@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { useLecturers } from "@/hooks/use-lecturers";
 import { useCreateAllocation, useUpdateAllocation } from "@/hooks/use-course-allocations";
 import {
@@ -117,6 +118,7 @@ export function AssignLecturerDialog({
               type="submit"
               disabled={!lecturerId || pending || (!activePeriod && !existingAllocation)}
             >
+              {pending && <Loader2 className="size-4 animate-spin" />}
               {existingAllocation ? "Reassign" : "Assign"}
             </Button>
           </DialogFooter>

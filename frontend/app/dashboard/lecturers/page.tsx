@@ -160,6 +160,7 @@ export default function LecturersPage() {
                           variant="ghost"
                           size="icon-sm"
                           onClick={() => setEditing(lecturer)}
+                          title={`Edit ${lecturer.staffId}`}
                         >
                           <Pencil className="size-3.5" />
                           <span className="sr-only">Edit {lecturer.staffId}</span>

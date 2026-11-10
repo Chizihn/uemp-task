@@ -41,6 +41,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PaginationControls } from "@/components/shared/pagination-controls";
 import { UserStatusBadge } from "@/components/shared/status-badge";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { ROLE_LABEL, type Role, type UserListItem, type UserStatus } from "@/lib/types";
 
 const TAKE = 20;
@@ -65,6 +66,20 @@ export default function UsersPage() {
     take: TAKE,
   });
   const updateStatus = useUpdateUserStatus();
+  const [pendingStatusChange, setPendingStatusChange] = useState<{
+    user: UserListItem;
+    status: UserStatus;
+  } | null>(null);
+
+  function requestStatusChange(user: UserListItem, status: UserStatus) {
+    // Restoring access is low-risk and reversible from here just as easily — only
+    // locking someone out needs a confirmation step.
+    if (status === "ACTIVE") {
+      updateStatus.mutate({ id: user.id, status });
+    } else {
+      setPendingStatusChange({ user, status });
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -169,7 +184,7 @@ export default function UsersPage() {
                     <UserRow
                       key={user.id}
                       user={user}
-                      onChangeStatus={(s) => updateStatus.mutate({ id: user.id, status: s })}
+                      onChangeStatus={(s) => requestStatusChange(user, s)}
                     />
                   ))}
                 </TableBody>
@@ -184,6 +199,27 @@ export default function UsersPage() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={!!pendingStatusChange}
+        onOpenChange={(open) => !open && setPendingStatusChange(null)}
+        title={`Mark ${pendingStatusChange ? formatName(pendingStatusChange.user) : ""} as ${pendingStatusChange?.status.toLowerCase()}?`}
+        description={
+          pendingStatusChange?.status === "SUSPENDED"
+            ? "They'll be immediately signed out and unable to log in until reactivated."
+            : "They'll lose access to the portal until their status is changed back."
+        }
+        confirmLabel="Confirm"
+        destructive
+        isPending={updateStatus.isPending}
+        onConfirm={() => {
+          if (!pendingStatusChange) return;
+          updateStatus.mutate(
+            { id: pendingStatusChange.user.id, status: pendingStatusChange.status },
+            { onSuccess: () => setPendingStatusChange(null) },
+          );
+        }}
+      />
     </div>
   );
 }
@@ -218,7 +254,9 @@ function UserRow({
       </TableCell>
       <TableCell className="text-right">
         <DropdownMenu>
-          <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+          <DropdownMenuTrigger
+            render={<Button variant="ghost" size="icon-sm" title={`Actions for ${formatName(user)}`} />}
+          >
             <MoreHorizontal className="size-4" />
             <span className="sr-only">Actions for {formatName(user)}</span>
           </DropdownMenuTrigger>

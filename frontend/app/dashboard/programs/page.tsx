@@ -23,6 +23,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ActiveBadge } from "@/components/shared/status-badge";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { ProgramFormDialog } from "./_components/program-form-dialog";
 import type { Program } from "@/lib/types";
 
@@ -33,6 +34,7 @@ export default function ProgramsPage() {
   const [dialogState, setDialogState] = useState<{ open: boolean; program?: Program }>({
     open: false,
   });
+  const [deactivating, setDeactivating] = useState<Program | null>(null);
 
   return (
     <div className="flex flex-col gap-6">
@@ -96,7 +98,9 @@ export default function ProgramsPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() =>
-                            updateProgram.mutate({ id: program.id, isActive: !program.isActive })
+                            program.isActive
+                              ? setDeactivating(program)
+                              : updateProgram.mutate({ id: program.id, isActive: true })
                           }
                         >
                           {program.isActive ? "Deactivate" : "Activate"}
@@ -106,6 +110,7 @@ export default function ProgramsPage() {
                           variant="ghost"
                           size="icon-sm"
                           onClick={() => setDialogState({ open: true, program })}
+                          title={`Edit ${program.name}`}
                         >
                           <Pencil className="size-3.5" />
                           <span className="sr-only">Edit {program.name}</span>
@@ -124,6 +129,23 @@ export default function ProgramsPage() {
         open={dialogState.open}
         onOpenChange={(open) => setDialogState((s) => ({ ...s, open }))}
         program={dialogState.program}
+      />
+
+      <ConfirmDialog
+        open={!!deactivating}
+        onOpenChange={(open) => !open && setDeactivating(null)}
+        title={`Deactivate ${deactivating?.name}?`}
+        description="Students won't be able to be enrolled into this program until it's reactivated."
+        confirmLabel="Deactivate"
+        destructive
+        isPending={updateProgram.isPending}
+        onConfirm={() => {
+          if (!deactivating) return;
+          updateProgram.mutate(
+            { id: deactivating.id, isActive: false },
+            { onSuccess: () => setDeactivating(null) },
+          );
+        }}
       />
     </div>
   );

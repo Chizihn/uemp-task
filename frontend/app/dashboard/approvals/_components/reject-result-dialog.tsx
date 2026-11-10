@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { useRejectResult } from "@/hooks/use-results";
 import {
   Dialog,
@@ -76,6 +77,7 @@ export function RejectResultDialog({ open, onOpenChange, result }: RejectResultD
               variant="destructive"
               disabled={reason.trim().length < 3 || rejectResult.isPending}
             >
+              {rejectResult.isPending && <Loader2 className="size-4 animate-spin" />}
               Return for correction
             </Button>
           </DialogFooter>

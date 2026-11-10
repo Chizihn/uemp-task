@@ -98,6 +98,7 @@ export default function DeptAdminsPage() {
                         variant="ghost"
                         size="icon-sm"
                         onClick={() => setReassigning(deptAdmin)}
+                        title={`Reassign ${deptAdmin.user ? formatName(deptAdmin.user) : ""}`}
                       >
                         <Pencil className="size-3.5" />
                         <span className="sr-only">

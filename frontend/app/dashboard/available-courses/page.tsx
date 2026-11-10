@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen } from "lucide-react";
+import { BookOpen, Loader2 } from "lucide-react";
 import { useEligibleCourses, useMyRegistrations, useRegisterCourse } from "@/hooks/use-registrations";
 import { useActivePeriod } from "@/hooks/use-academic-sessions";
 import { useRequireRole } from "@/hooks/use-require-role";
@@ -129,6 +129,7 @@ export default function AvailableCoursesPage() {
                           title={wouldExceed ? "Would exceed the credit limit this semester" : undefined}
                           onClick={() => registerCourse.mutate(allocation.id)}
                         >
+                          {registerCourse.isPending && <Loader2 className="size-4 animate-spin" />}
                           Register
                           <span className="sr-only"> for {allocation.course.code}</span>
                         </Button>

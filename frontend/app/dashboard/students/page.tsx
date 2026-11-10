@@ -180,7 +180,12 @@ export default function StudentsPage() {
                         <UserStatusBadge status={student.user?.status ?? "ACTIVE"} />
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon-sm" onClick={() => setEditing(student)}>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => setEditing(student)}
+                          title={`Edit ${student.matricNumber}`}
+                        >
                           <Pencil className="size-3.5" />
                           <span className="sr-only">Edit {student.matricNumber}</span>
                         </Button>

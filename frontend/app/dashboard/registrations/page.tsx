@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { ClipboardList, Printer, X } from "lucide-react";
 import { useMyRegistrations, useWithdrawRegistration } from "@/hooks/use-registrations";
 import { useActivePeriod } from "@/hooks/use-academic-sessions";
 import { useRequireRole } from "@/hooks/use-require-role";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import {
   Card,
   CardContent,
@@ -24,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ResultStatusBadge } from "@/components/shared/status-badge";
-import { TERM_LABEL } from "@/lib/types";
+import { TERM_LABEL, type Registration } from "@/lib/types";
 import { formatName, lecturerDisplayName } from "@/lib/utils";
 
 export default function RegistrationsPage() {
@@ -35,6 +37,7 @@ export default function RegistrationsPage() {
     semesterId: activePeriod?.semester.id,
   });
   const withdraw = useWithdrawRegistration();
+  const [withdrawing, setWithdrawing] = useState<Registration | null>(null);
 
   return (
     <div className="flex flex-col gap-6">
@@ -118,8 +121,9 @@ export default function RegistrationsPage() {
                           <Button
                             variant="ghost"
                             size="icon-sm"
-                            onClick={() => withdraw.mutate(registration.id)}
+                            onClick={() => setWithdrawing(registration)}
                             disabled={withdraw.isPending}
+                            title={`Withdraw from ${course.code}`}
                           >
                             <X className="size-3.5" />
                             <span className="sr-only">Withdraw from {course.code}</span>
@@ -141,6 +145,20 @@ export default function RegistrationsPage() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={!!withdrawing}
+        onOpenChange={(open) => !open && setWithdrawing(null)}
+        title={`Withdraw from ${withdrawing?.courseAllocation.course.code}?`}
+        description="You'll be removed from this course for the current semester. If you change your mind, you'll need to register again before registration closes."
+        confirmLabel="Withdraw"
+        destructive
+        isPending={withdraw.isPending}
+        onConfirm={() => {
+          if (!withdrawing) return;
+          withdraw.mutate(withdrawing.id, { onSuccess: () => setWithdrawing(null) });
+        }}
+      />
     </div>
   );
 }

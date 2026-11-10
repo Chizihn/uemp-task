@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { facultyFormSchema, type FacultyFormValues } from "@/lib/validations/faculty";
@@ -96,6 +97,7 @@ export function FacultyFormDialog({ open, onOpenChange, faculty }: FacultyFormDi
           </div>
           <DialogFooter>
             <Button type="submit" disabled={pending}>
+              {pending && <Loader2 className="size-4 animate-spin" />}
               {isEdit ? "Save changes" : "Create faculty"}
             </Button>
           </DialogFooter>

@@ -205,11 +205,17 @@ export default function CoursesPage() {
                               size="icon-sm"
                               onClick={() => setAssigning(course)}
                               disabled={!activePeriod && !allocation}
+                              title={`Assign lecturer to ${course.code}`}
                             >
                               <UserPlus className="size-3.5" />
                               <span className="sr-only">Assign lecturer to {course.code}</span>
                             </Button>
-                            <Button variant="ghost" size="icon-sm" onClick={() => setEditing(course)}>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => setEditing(course)}
+                              title={`Edit ${course.code}`}
+                            >
                               <Pencil className="size-3.5" />
                               <span className="sr-only">Edit {course.code}</span>
                             </Button>

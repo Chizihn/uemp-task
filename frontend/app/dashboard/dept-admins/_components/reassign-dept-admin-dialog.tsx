@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { useUpdateDeptAdmin } from "@/hooks/use-dept-admins";
 import { useDepartments } from "@/hooks/use-departments";
 import {
@@ -89,6 +90,7 @@ export function ReassignDeptAdminDialog({
               type="submit"
               disabled={!departmentId || departmentId === deptAdmin?.departmentId || updateDeptAdmin.isPending}
             >
+              {updateDeptAdmin.isPending && <Loader2 className="size-4 animate-spin" />}
               Reassign
             </Button>
           </DialogFooter>

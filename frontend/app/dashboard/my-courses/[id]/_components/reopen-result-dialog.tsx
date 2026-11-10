@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { useReopenResult } from "@/hooks/use-results";
 import {
   Dialog,
@@ -65,6 +66,7 @@ export function ReopenResultDialog({ open, onOpenChange, resultId }: ReopenResul
           </div>
           <DialogFooter>
             <Button type="submit" disabled={reopenResult.isPending}>
+              {reopenResult.isPending && <Loader2 className="size-4 animate-spin" />}
               Reopen
             </Button>
           </DialogFooter>

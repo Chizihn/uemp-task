@@ -23,6 +23,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ActiveBadge } from "@/components/shared/status-badge";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { DepartmentFormDialog } from "./_components/department-form-dialog";
 import type { Department } from "@/lib/types";
 
@@ -33,6 +34,7 @@ export default function DepartmentsPage() {
   const [dialogState, setDialogState] = useState<{ open: boolean; department?: Department }>({
     open: false,
   });
+  const [deactivating, setDeactivating] = useState<Department | null>(null);
 
   return (
     <div className="flex flex-col gap-6">
@@ -94,10 +96,9 @@ export default function DepartmentsPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() =>
-                            updateDepartment.mutate({
-                              id: department.id,
-                              isActive: !department.isActive,
-                            })
+                            department.isActive
+                              ? setDeactivating(department)
+                              : updateDepartment.mutate({ id: department.id, isActive: true })
                           }
                         >
                           {department.isActive ? "Deactivate" : "Activate"}
@@ -107,6 +108,7 @@ export default function DepartmentsPage() {
                           variant="ghost"
                           size="icon-sm"
                           onClick={() => setDialogState({ open: true, department })}
+                          title={`Edit ${department.name}`}
                         >
                           <Pencil className="size-3.5" />
                           <span className="sr-only">Edit {department.name}</span>
@@ -125,6 +127,23 @@ export default function DepartmentsPage() {
         open={dialogState.open}
         onOpenChange={(open) => setDialogState((s) => ({ ...s, open }))}
         department={dialogState.department}
+      />
+
+      <ConfirmDialog
+        open={!!deactivating}
+        onOpenChange={(open) => !open && setDeactivating(null)}
+        title={`Deactivate ${deactivating?.name}?`}
+        description="Its students, lecturers, courses, and programs will stop appearing as options across the system until it's reactivated."
+        confirmLabel="Deactivate"
+        destructive
+        isPending={updateDepartment.isPending}
+        onConfirm={() => {
+          if (!deactivating) return;
+          updateDepartment.mutate(
+            { id: deactivating.id, isActive: false },
+            { onSuccess: () => setDeactivating(null) },
+          );
+        }}
       />
     </div>
   );

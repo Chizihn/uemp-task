@@ -22,16 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SessionFormDialog } from "./_components/session-form-dialog";
 import { AddSemesterDialog } from "./_components/add-semester-dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { TERM_LABEL, type AcademicSession } from "@/lib/types";
 
 type PendingActivation =
@@ -174,27 +165,15 @@ export default function AcademicSessionsPage() {
         session={semesterDialog.session}
       />
 
-      <AlertDialog open={!!pending} onOpenChange={(open) => !open && setPending(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Activate {pending?.label}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This becomes the current {pending?.type} university-wide, and deactivates whichever
-              one is currently active. Students will immediately see it as the current period for
-              registration.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmActivation}
-              disabled={activateSession.isPending || activateSemester.isPending}
-            >
-              Activate
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={!!pending}
+        onOpenChange={(open) => !open && setPending(null)}
+        title={`Activate ${pending?.label}?`}
+        description={`This becomes the current ${pending?.type} university-wide, and deactivates whichever one is currently active. Students will immediately see it as the current period for registration.`}
+        confirmLabel="Activate"
+        isPending={activateSession.isPending || activateSemester.isPending}
+        onConfirm={confirmActivation}
+      />
     </div>
   );
 }

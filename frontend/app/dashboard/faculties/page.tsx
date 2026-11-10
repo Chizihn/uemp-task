@@ -23,6 +23,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ActiveBadge } from "@/components/shared/status-badge";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { FacultyFormDialog } from "./_components/faculty-form-dialog";
 import type { Faculty } from "@/lib/types";
 
@@ -33,6 +34,7 @@ export default function FacultiesPage() {
   const [dialogState, setDialogState] = useState<{ open: boolean; faculty?: Faculty }>({
     open: false,
   });
+  const [deactivating, setDeactivating] = useState<Faculty | null>(null);
 
   return (
     <div className="flex flex-col gap-6">
@@ -90,7 +92,9 @@ export default function FacultiesPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() =>
-                            updateFaculty.mutate({ id: faculty.id, isActive: !faculty.isActive })
+                            faculty.isActive
+                              ? setDeactivating(faculty)
+                              : updateFaculty.mutate({ id: faculty.id, isActive: true })
                           }
                         >
                           {faculty.isActive ? "Deactivate" : "Activate"}
@@ -100,6 +104,7 @@ export default function FacultiesPage() {
                           variant="ghost"
                           size="icon-sm"
                           onClick={() => setDialogState({ open: true, faculty })}
+                          title={`Edit ${faculty.name}`}
                         >
                           <Pencil className="size-3.5" />
                           <span className="sr-only">Edit {faculty.name}</span>
@@ -118,6 +123,23 @@ export default function FacultiesPage() {
         open={dialogState.open}
         onOpenChange={(open) => setDialogState((s) => ({ ...s, open }))}
         faculty={dialogState.faculty}
+      />
+
+      <ConfirmDialog
+        open={!!deactivating}
+        onOpenChange={(open) => !open && setDeactivating(null)}
+        title={`Deactivate ${deactivating?.name}?`}
+        description="Its departments, programs, and courses will stop appearing as options across the system until it's reactivated."
+        confirmLabel="Deactivate"
+        destructive
+        isPending={updateFaculty.isPending}
+        onConfirm={() => {
+          if (!deactivating) return;
+          updateFaculty.mutate(
+            { id: deactivating.id, isActive: false },
+            { onSuccess: () => setDeactivating(null) },
+          );
+        }}
       />
     </div>
   );

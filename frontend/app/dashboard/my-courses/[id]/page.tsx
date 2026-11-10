@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, RotateCcw, Save, Send, Users } from "lucide-react";
+import { ArrowLeft, Loader2, RotateCcw, Save, Send, Users } from "lucide-react";
 import { useClassList, useSaveDraft, useSubmitResult } from "@/hooks/use-results";
 import { useRequireRole } from "@/hooks/use-require-role";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ResultStatusBadge } from "@/components/shared/status-badge";
 import { ReopenResultDialog } from "./_components/reopen-result-dialog";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { formatName } from "@/lib/utils";
 import type { ClassList } from "@/lib/types";
 
@@ -35,6 +36,9 @@ export default function ClassListPage() {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading } = useClassList(id);
   const [reopeningResultId, setReopeningResultId] = useState<string | undefined>();
+  const [submittingRegistrationId, setSubmittingRegistrationId] = useState<string | undefined>();
+  const submitResult = useSubmitResult();
+  const submittingRegistration = data?.registrations.find((r) => r.id === submittingRegistrationId);
 
   const isLecturer = user?.role === "LECTURER";
   const backHref = isLecturer ? "/dashboard/my-courses" : "/dashboard/courses";
@@ -100,6 +104,8 @@ export default function ClassListPage() {
                     registration={registration}
                     isLecturer={isLecturer}
                     onReopen={(resultId) => setReopeningResultId(resultId)}
+                    onRequestSubmit={(registrationId) => setSubmittingRegistrationId(registrationId)}
+                    isSubmitPending={submitResult.isPending}
                   />
                 ))}
               </TableBody>
@@ -113,6 +119,21 @@ export default function ClassListPage() {
         onOpenChange={(open) => !open && setReopeningResultId(undefined)}
         resultId={reopeningResultId}
       />
+
+      <ConfirmDialog
+        open={!!submittingRegistrationId}
+        onOpenChange={(open) => !open && setSubmittingRegistrationId(undefined)}
+        title={`Submit result for ${submittingRegistration?.student.matricNumber}?`}
+        description="This locks the score for departmental review — you won't be able to edit it again unless it's rejected or reopened."
+        confirmLabel="Submit"
+        isPending={submitResult.isPending}
+        onConfirm={() => {
+          if (!submittingRegistrationId) return;
+          submitResult.mutate(submittingRegistrationId, {
+            onSuccess: () => setSubmittingRegistrationId(undefined),
+          });
+        }}
+      />
     </div>
   );
 }
@@ -121,10 +142,14 @@ function ClassListRow({
   registration,
   isLecturer,
   onReopen,
+  onRequestSubmit,
+  isSubmitPending,
 }: {
   registration: ClassList["registrations"][number];
   isLecturer: boolean;
   onReopen: (resultId: string) => void;
+  onRequestSubmit: (registrationId: string) => void;
+  isSubmitPending: boolean;
 }) {
   const result = registration.result;
   const editable = isLecturer && (!result || result.status === "DRAFT" || result.status === "REJECTED");
@@ -133,7 +158,6 @@ function ClassListRow({
   const [examScore, setExamScore] = useState<string>(result?.examScore?.toString() ?? "");
 
   const saveDraft = useSaveDraft();
-  const submitResult = useSubmitResult();
 
   const caNum = caScore === "" ? undefined : Number(caScore);
   const examNum = examScore === "" ? undefined : Number(examScore);
@@ -207,14 +231,18 @@ function ClassListRow({
               }
               title="Save draft"
             >
-              <Save className="size-3.5" />
+              {saveDraft.isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Save className="size-3.5" />
+              )}
               <span className="sr-only">Save draft for {registration.student.matricNumber}</span>
             </Button>
             <Button
               variant="ghost"
               size="icon-sm"
-              disabled={!canSubmit || submitResult.isPending}
-              onClick={() => submitResult.mutate(registration.id)}
+              disabled={!canSubmit || isSubmitPending}
+              onClick={() => onRequestSubmit(registration.id)}
               title="Submit for review"
             >
               <Send className="size-3.5" />

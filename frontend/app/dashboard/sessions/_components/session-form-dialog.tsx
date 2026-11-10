@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { sessionFormSchema, type SessionFormValues } from "@/lib/validations/academic-session";
@@ -70,6 +71,7 @@ export function SessionFormDialog({ open, onOpenChange }: SessionFormDialogProps
           </div>
           <DialogFooter>
             <Button type="submit" disabled={createSession.isPending}>
+              {createSession.isPending && <Loader2 className="size-4 animate-spin" />}
               Create session
             </Button>
           </DialogFooter>

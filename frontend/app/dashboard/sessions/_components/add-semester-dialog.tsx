@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { useAddSemester } from "@/hooks/use-academic-sessions";
 import {
   Dialog,
@@ -87,6 +88,7 @@ export function AddSemesterDialog({ open, onOpenChange, session }: AddSemesterDi
           </div>
           <DialogFooter>
             <Button type="submit" disabled={!term || addSemester.isPending}>
+              {addSemester.isPending && <Loader2 className="size-4 animate-spin" />}
               Add semester
             </Button>
           </DialogFooter>

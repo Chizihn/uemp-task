@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckSquare, Search } from "lucide-react";
+import { CheckSquare, Loader2, Search } from "lucide-react";
 import { usePendingResults, useApproveResult } from "@/hooks/use-results";
 import { useRequireRole } from "@/hooks/use-require-role";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -147,6 +147,7 @@ export default function ApprovalsPage() {
                               disabled={approveResult.isPending}
                               onClick={() => approveResult.mutate(result.id)}
                             >
+                              {approveResult.isPending && <Loader2 className="size-4 animate-spin" />}
                               Approve
                               <span className="sr-only">
                                 {" "}

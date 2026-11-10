@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { deptAdminFormSchema, type DeptAdminFormValues } from "@/lib/validations/dept-admin";
@@ -162,6 +163,7 @@ export function DeptAdminFormDialog({ open, onOpenChange }: DeptAdminFormDialogP
           </div>
           <DialogFooter>
             <Button type="submit" disabled={createDeptAdmin.isPending}>
+              {createDeptAdmin.isPending && <Loader2 className="size-4 animate-spin" />}
               Create department admin
             </Button>
           </DialogFooter>

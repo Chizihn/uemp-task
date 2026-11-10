@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createCourseFormSchema, type CreateCourseFormValues } from "@/lib/validations/course";
@@ -213,6 +214,7 @@ export function CreateCourseDialog({ open, onOpenChange }: CreateCourseDialogPro
 
           <DialogFooter>
             <Button type="submit" disabled={createCourse.isPending}>
+              {createCourse.isPending && <Loader2 className="size-4 animate-spin" />}
               Create course
             </Button>
           </DialogFooter>

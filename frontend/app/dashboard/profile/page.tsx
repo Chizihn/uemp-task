@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -137,6 +138,7 @@ export default function ProfilePage() {
           </CardContent>
           <CardFooter>
             <Button type="submit" disabled={updateProfile.isPending}>
+              {updateProfile.isPending && <Loader2 className="size-4 animate-spin" />}
               Save changes
             </Button>
           </CardFooter>
@@ -206,6 +208,7 @@ export default function ProfilePage() {
           </CardContent>
           <CardFooter>
             <Button type="submit" disabled={changePassword.isPending}>
+              {changePassword.isPending && <Loader2 className="size-4 animate-spin" />}
               Change password
             </Button>
           </CardFooter>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateCourseFormSchema, type UpdateCourseFormValues } from "@/lib/validations/course";
@@ -154,6 +155,7 @@ export function EditCourseDialog({ open, onOpenChange, course }: EditCourseDialo
           </div>
           <DialogFooter>
             <Button type="submit" disabled={updateCourse.isPending}>
+              {updateCourse.isPending && <Loader2 className="size-4 animate-spin" />}
               Save changes
             </Button>
           </DialogFooter>

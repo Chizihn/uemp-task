@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -129,6 +130,7 @@ export function EditStudentDialog({ open, onOpenChange, student }: EditStudentDi
           </div>
           <DialogFooter>
             <Button type="submit" disabled={updateStudent.isPending}>
+              {updateStudent.isPending && <Loader2 className="size-4 animate-spin" />}
               Save changes
             </Button>
           </DialogFooter>
