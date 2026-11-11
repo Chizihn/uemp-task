@@ -48,6 +48,21 @@ export class AuthController {
     return { success: true };
   }
 
+  // Unlike /logout, this doesn't require a valid session — it exists for the one
+  // case where the normal logout can't run at all: a cookie that still looks
+  // unexpired to the client but no longer verifies (e.g. the account behind it
+  // was deleted, or the DB was reset). httpOnly cookies can only be cleared by a
+  // Set-Cookie response, so without this, a client stuck in that state has no way
+  // to ever clear it and ends up bouncing between /login and /dashboard forever.
+  @Public()
+  @Post('clear-session')
+  @HttpCode(HttpStatus.OK)
+  clearSession(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie(ACCESS_TOKEN_COOKIE, buildCookieOptions(0));
+    res.clearCookie(REFRESH_TOKEN_COOKIE, buildCookieOptions(0));
+    return { success: true };
+  }
+
   @Get('me')
   me(@CurrentUser() user: AuthUser) {
     return this.authService.getProfile(user);

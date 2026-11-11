@@ -5,7 +5,44 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "cn"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+// Base UI's <Select.Value> only resolves a label for the current value from an
+// `items` map passed to <Select.Root> — it never scans the rendered <SelectItem>
+// children for a match. Every call site here declares items as JSX instead of a
+// separate items map, so we derive that map from the same JSX we already have,
+// rather than making every consumer duplicate its options as a second data
+// structure just to get the trigger to display a label instead of the raw value.
+function collectItemLabels(node: React.ReactNode, map: Record<string, React.ReactNode>) {
+  React.Children.forEach(node, (child) => {
+    if (!React.isValidElement(child)) return
+    const props = child.props as { value?: unknown; children?: React.ReactNode }
+    if (child.type === SelectItem) {
+      if (props.value !== undefined) {
+        map[String(props.value)] = props.children
+      }
+      return
+    }
+    if (props && "children" in props) {
+      collectItemLabels(props.children, map)
+    }
+  })
+}
+
+function Select<Value, Multiple extends boolean | undefined = false>({
+  children,
+  ...props
+}: SelectPrimitive.Root.Props<Value, Multiple>) {
+  const items = React.useMemo(() => {
+    const map: Record<string, React.ReactNode> = {}
+    collectItemLabels(children, map)
+    return map
+  }, [children])
+
+  return (
+    <SelectPrimitive.Root items={items} {...props}>
+      {children}
+    </SelectPrimitive.Root>
+  )
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (

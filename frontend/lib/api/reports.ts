@@ -33,7 +33,10 @@ export interface ExportedPdf {
 }
 
 async function exportPdf(path: string, filters: PeriodFilter, fallback: string): Promise<ExportedPdf> {
-  const response = await apiClient.post<Blob>(path, null, {
+  // No request body — these endpoints take sessionId/semesterId as query params only.
+  // Passing `null` here gets serialized by axios as the literal text "null", which
+  // Express's strict-mode JSON body parser rejects (it only accepts `{...}`/`[...]`).
+  const response = await apiClient.post<Blob>(path, undefined, {
     params: filters,
     responseType: "blob",
   });

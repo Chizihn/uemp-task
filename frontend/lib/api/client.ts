@@ -15,7 +15,7 @@ export interface ApiEnvelope<T> {
 
 type RetryableConfig = InternalAxiosRequestConfig & { _retried?: boolean };
 
-const NO_REFRESH_PATHS = ["/auth/login", "/auth/refresh", "/auth/logout"];
+const NO_REFRESH_PATHS = ["/auth/login", "/auth/refresh", "/auth/logout", "/auth/clear-session"];
 
 let refreshPromise: Promise<void> | null = null;
 
@@ -52,6 +52,18 @@ apiClient.interceptors.response.use(
         return apiClient(config);
       } catch {
         if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+          // The refresh token is dead (expired, or — e.g. after a DB reset —
+          // referring to an account that no longer exists) but the cookie can
+          // still look "unexpired" to middleware's claim-only check. httpOnly
+          // cookies can only be cleared by a Set-Cookie response, so without
+          // this call nothing ever clears it and middleware keeps treating
+          // /login as "already authenticated," bouncing back to /dashboard
+          // forever. This endpoint works with no valid session, unlike /logout.
+          try {
+            await apiClient.post("/auth/clear-session");
+          } catch {
+            // Best-effort — still redirect even if this itself fails.
+          }
           // Hard reload, not router.push: this runs outside React (an axios
           // interceptor), and the refresh token itself just failed, so a
           // full reload is what actually guarantees every bit of client

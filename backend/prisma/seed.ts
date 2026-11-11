@@ -697,6 +697,17 @@ async function main() {
       const allocation = currentAllocations.get(courseSpec.code)!;
 
       for (const [studentIndex, student] of roster.entries()) {
+        // Every student skips exactly one course at their level (spread evenly
+        // across different courses, not the same one for everyone) so that
+        // *every* student account — not just the one used in demos — has at
+        // least one real course to register for in Available Courses. Without
+        // this, every student is registered for every course offered at their
+        // level with zero slack, and the registration flow can't be
+        // demonstrated by any account at all.
+        if (levelCourses.length > 1 && studentIndex % levelCourses.length === courseIndex) {
+          continue;
+        }
+
         const registration = await register(student.id, allocation.id);
         const slot = (courseIndex * roster.length + studentIndex) % 6;
 
